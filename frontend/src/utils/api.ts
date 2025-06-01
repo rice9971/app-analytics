@@ -12,7 +12,7 @@ import {
 } from '../types/data';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api'
+  baseURL: (import.meta as any).env.VITE_API_BASE_URL
 });
 
 export const fetchGenres = async (): Promise<Genre[]> => {

@@ -254,24 +254,34 @@ def get_stability(client: clickhouse_driver.Client, year: int, month: int) -> Li
     )
     SELECT
         j1.genre_id,
-        round(ifNull(corr(CASE WHEN TRUE THEN j1.rank1 END, 
-                  CASE WHEN TRUE THEN j1.rank2 END), 0), 6) as stability_all,
-        round(ifNull(corr(CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank1 END,
-                  CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank2 END), 0), 6) as stability_5,
-        round(ifNull(corr(CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank1 END,
-                  CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank2 END), 0), 6) as stability_10,
-        round(ifNull(corr(CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank1 END,
-                  CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank2 END), 0), 6) as stability_20
+        ifNull(round(corr(CASE WHEN TRUE THEN j1.rank1 END, 
+                  CASE WHEN TRUE THEN j1.rank2 END), 6), 0) as stability_all,
+        ifNull(round(corr(CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank1 END,
+                  CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank2 END), 6), 0) as stability_5,
+        ifNull(round(corr(CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank1 END,
+                  CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank2 END), 6), 0) as stability_10,
+        ifNull(round(corr(CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank1 END,
+                  CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank2 END), 6), 0) as stability_20
     FROM joined j1
     GROUP BY j1.genre_id
     """
     result = client.execute(query)
+    
+    def safe_float(value) -> float:
+        try:
+            f = float(value)
+            if not (f >= -1 and f <= 1):  # 相關係數應該在 -1 到 1 之間
+                return 0.0
+            return f
+        except (ValueError, TypeError):
+            return 0.0
+    
     return [StabilityData(
         genre_id=row[0],
-        stability=row[1] if row[1] is not None else 0.0,
-        stability_5=row[2] if row[2] is not None else 0.0,
-        stability_10=row[3] if row[3] is not None else 0.0,
-        stability_20=row[4] if row[4] is not None else 0.0
+        stability=safe_float(row[1]),
+        stability_5=safe_float(row[2]),
+        stability_10=safe_float(row[3]),
+        stability_20=safe_float(row[4])
     ) for row in result]
 
 def get_country_rank(client: clickhouse_driver.Client, year: int, month: int) -> List[CountryRankData]:
