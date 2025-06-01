@@ -44,10 +44,14 @@ class StabilityData(BaseModel):
     stability_10: float
     stability_20: float
 
-class CountryRankData(BaseModel):
+class CountryRank(BaseModel):
     rank: int
     country_code: str
     count_download: int
+
+class CountryRankData(BaseModel):
+    genre_id: int
+    rankings: List[CountryRank]
 
 # Response models
 class GenreResponse(BaseModel):

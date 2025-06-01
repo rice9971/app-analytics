@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 from model import (
     Genre, RevenueData, UserData, RatingData, VersionData,
-    CountData, HHIData, StabilityData, CountryRankData
+    CountData, HHIData, StabilityData, CountryRankData, CountryRank
 )
 
 # Constants
@@ -277,24 +277,50 @@ def get_country_rank(client: clickhouse_driver.Client, year: int, month: int) ->
         SELECT
             m.TAG_KEY as genre_id,
             rev.COUNTRY_CODE,
-            sum(rev.EST_DOWNLOAD) as total_downloads
+            toInt64(ifNull(sum(rev.EST_DOWNLOAD), 0)) as total_downloads
         FROM app_iq_dw_rev_alltime_top10 AS rev
         INNER JOIN app_iq_metadata AS m 
             ON rev.PRODUCT_KEY = m.PRODUCT_KEY
         WHERE rev.DATE BETWEEN '{start_date}' AND '{end_date}'
         AND rev.COUNTRY_CODE in {countries}
         GROUP BY m.TAG_KEY, rev.COUNTRY_CODE
+    ),
+    ranked AS (
+        SELECT
+            genre_id,
+            COUNTRY_CODE,
+            total_downloads,
+            row_number() OVER (PARTITION BY genre_id ORDER BY total_downloads DESC) as rank
+        FROM tag_country
     )
     SELECT
-        TAG_KEY as genre_id,
+        genre_id,
+        rank,
         COUNTRY_CODE,
         total_downloads
-    FROM tag_country
-    ORDER BY TAG_KEY, total_downloads DESC
+    FROM ranked
+    WHERE rank <= 10
+    ORDER BY genre_id, rank
     """
     result = client.execute(query)
-    return [CountryRankData(
-        rank=idx + 1,
-        country_code=row[1],
-        count_download=row[2]
-    ) for idx, row in enumerate(result)]
+    
+    # Group results by genre_id
+    genre_rankings = {}
+    for row in result:
+        genre_id = row[0]
+        if genre_id not in genre_rankings:
+            genre_rankings[genre_id] = []
+        genre_rankings[genre_id].append(CountryRank(
+            rank=row[1],
+            country_code=row[2],
+            count_download=row[3]
+        ))
+    
+    # Convert to list of CountryRankData
+    return [
+        CountryRankData(
+            genre_id=genre_id,
+            rankings=rankings
+        )
+        for genre_id, rankings in genre_rankings.items()
+    ]
