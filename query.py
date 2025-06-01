@@ -179,7 +179,7 @@ def get_hhi(client: clickhouse_driver.Client, year: int, month: int) -> List[HHI
         revenue AS (
             SELECT
                 meta.TAG_KEY as genre_id,
-                rev.EST_REVENUE as revenue
+                ifNull(rev.EST_REVENUE, 0) as revenue
             FROM app_iq_dw_rev_alltime_top10 AS rev
             LEFT JOIN app_iq_metadata AS meta ON rev.PRODUCT_KEY = meta.PRODUCT_KEY
             WHERE rev.DATE between '{start_date}' AND '{end_date}'
@@ -187,22 +187,28 @@ def get_hhi(client: clickhouse_driver.Client, year: int, month: int) -> List[HHI
         ),
         total_revenue AS (
             SELECT
-                TAG_KEY as genre_id,
-                sum(EST_REVENUE) as total_revenue
+                genre_id,
+                ifNull(sum(revenue), 0) as total_revenue
             FROM revenue
-            GROUP BY app_iq_metadata.TAG_KEY
+            GROUP BY genre_id
         )
     SELECT
-        r.TAG_KEY as genre_id,
-        round(sum((r.EST_REVENUE / tr.TotalRevenue) * (r.EST_REVENUE / tr.TotalRevenue)) * 10000, 2) as hhi
+        r.genre_id,
+        round(sum(
+            CASE 
+                WHEN tr.total_revenue > 0 
+                THEN (r.revenue / tr.total_revenue) * (r.revenue / tr.total_revenue) 
+                ELSE 0 
+            END
+        ) * 10000, 2) as hhi
     FROM revenue r
-    INNER JOIN total_revenue tr ON r.TAG_KEY = tr.TAG_KEY
-    GROUP BY app_iq_metadata.TAG_KEY
+    INNER JOIN total_revenue tr ON r.genre_id = tr.genre_id
+    GROUP BY r.genre_id
     """
     result = client.execute(query)
     return [HHIData(
         genre_id=row[0],
-        hhi=row[1]
+        hhi=row[1] if row[1] is not None else 0.0
     ) for row in result]
 
 def get_stability(client: clickhouse_driver.Client, year: int, month: int) -> List[StabilityData]:
@@ -216,56 +222,56 @@ def get_stability(client: clickhouse_driver.Client, year: int, month: int) -> Li
             m.TAG_KEY as genre_id,
             rev.PRODUCT_KEY,
             rev.DATE,
-            sum(rev.EST_DOWNLOAD) as count_download
+            ifNull(sum(rev.EST_DOWNLOAD), 0) as count_download
         FROM app_iq_dw_rev_alltime_top10 AS rev
         INNER JOIN app_iq_metadata AS m 
             ON rev.PRODUCT_KEY = m.PRODUCT_KEY
         WHERE rev.DATE BETWEEN '{previous_month_end}' AND '{end_date}'
           AND rev.COUNTRY_CODE in {countries}
-        GROUP BY app_iq_metadata.TAG_KEY, rev.PRODUCT_KEY, rev.DATE
+        GROUP BY m.TAG_KEY, rev.PRODUCT_KEY, rev.DATE
     ),
     ranked AS (
         SELECT
-            TAG_KEY as genre_id,
+            genre_id,
             PRODUCT_KEY,
             DATE,
             count_download,
-            rank() OVER (PARTITION BY app_iq_metadata.TAG_KEY, DATE ORDER BY count_download DESC) AS rn
+            rank() OVER (PARTITION BY genre_id, DATE ORDER BY count_download DESC) AS rn
         FROM base
     ),
     joined AS (
         SELECT
-            r1.TAG_KEY as genre_id,
+            r1.genre_id,
             r1.PRODUCT_KEY,
             r1.rn AS rank1,
             r2.rn AS rank2
         FROM ranked r1
         INNER JOIN ranked r2 
-            ON r1.TAG_KEY = r2.TAG_KEY 
+            ON r1.genre_id = r2.genre_id 
            AND r1.PRODUCT_KEY = r2.PRODUCT_KEY
         WHERE r1.DATE = '{previous_month_end}'
           AND r2.DATE = '{end_date}'
     )
     SELECT
-        j1.TAG_KEY as genre_id,
-        round(corr(CASE WHEN TRUE THEN j1.rank1 END, 
-                  CASE WHEN TRUE THEN j1.rank2 END), 6) as stability_all,
-        round(corr(CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank1 END,
-                  CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank2 END), 6) as stability_5,
-        round(corr(CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank1 END,
-                  CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank2 END), 6) as stability_10,
-        round(corr(CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank1 END,
-                  CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank2 END), 6) as stability_20
+        j1.genre_id,
+        round(ifNull(corr(CASE WHEN TRUE THEN j1.rank1 END, 
+                  CASE WHEN TRUE THEN j1.rank2 END), 0), 6) as stability_all,
+        round(ifNull(corr(CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank1 END,
+                  CASE WHEN j1.rank1 <= 5 AND j1.rank2 <= 5 THEN j1.rank2 END), 0), 6) as stability_5,
+        round(ifNull(corr(CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank1 END,
+                  CASE WHEN j1.rank1 <= 10 AND j1.rank2 <= 10 THEN j1.rank2 END), 0), 6) as stability_10,
+        round(ifNull(corr(CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank1 END,
+                  CASE WHEN j1.rank1 <= 20 AND j1.rank2 <= 20 THEN j1.rank2 END), 0), 6) as stability_20
     FROM joined j1
-    GROUP BY app_iq_metadata.TAG_KEY
+    GROUP BY j1.genre_id
     """
     result = client.execute(query)
     return [StabilityData(
         genre_id=row[0],
-        stability=row[1],
-        stability_5=row[2],
-        stability_10=row[3],
-        stability_20=row[4]
+        stability=row[1] if row[1] is not None else 0.0,
+        stability_5=row[2] if row[2] is not None else 0.0,
+        stability_10=row[3] if row[3] is not None else 0.0,
+        stability_20=row[4] if row[4] is not None else 0.0
     ) for row in result]
 
 def get_country_rank(client: clickhouse_driver.Client, year: int, month: int) -> List[CountryRankData]:
