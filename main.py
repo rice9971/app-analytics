@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 import clickhouse_driver
 import os
 from dotenv import load_dotenv
@@ -12,7 +14,17 @@ from query import (
 # Load environment variables from .env file
 load_dotenv()
 
+# Add ngrok skip browser warning middleware
+class NgrokSkipBrowserWarningMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["ngrok-skip-browser-warning"] = "true"
+        return response
+
 app = FastAPI()
+
+# Add ngrok middleware
+app.add_middleware(NgrokSkipBrowserWarningMiddleware)
 
 # Add CORS middleware
 app.add_middleware(

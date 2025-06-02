@@ -12,7 +12,10 @@ import {
 } from '../types/data';
 
 const api = axios.create({
-  baseURL: (import.meta as any).env.VITE_API_BASE_URL
+  baseURL: (import.meta as any).env.VITE_API_BASE_URL,
+  headers: {
+    'ngrok-skip-browser-warning': 'true'
+  }
 });
 
 export const fetchGenres = async (): Promise<Genre[]> => {
