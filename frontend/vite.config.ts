@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react()],
-    base: '/final/',
+    base: '/app-analytics/',
     server: {
       port: 3000,
     },
