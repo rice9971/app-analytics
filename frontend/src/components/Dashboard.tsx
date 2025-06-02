@@ -11,6 +11,9 @@ import {
   InputLabel,
   Tab,
   Tabs,
+  OutlinedInput,
+  Chip,
+  SelectChangeEvent,
 } from '@mui/material';
 import { useQuery } from 'react-query';
 import {
@@ -71,10 +74,10 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const Dashboard: React.FC = () => {
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const [selectedMonth, setSelectedMonth] = useState(11);
-  const [selectedGenre, setSelectedGenre] = useState<string>('');
-  const [tabValue, setTabValue] = useState(0);
+  const [selectedYear, setSelectedYear] = useState<number>(2024);
+  const [selectedMonth, setSelectedMonth] = useState<number>(11);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [tabValue, setTabValue] = useState<number>(0);
 
   const { data: genres } = useQuery('genres', fetchGenres);
   const { data: revenue } = useQuery(
@@ -111,9 +114,9 @@ const Dashboard: React.FC = () => {
     return genres?.find(g => g.id === genreId)?.name || genreId;
   };
 
-  // Filter data based on selected genre
+  // Filter data based on selected genres
   const filterData = <T extends { genre_id: string }>(data: T[] | undefined): T[] => {
-    return data?.filter(item => !selectedGenre || item.genre_id === selectedGenre) || [];
+    return data?.filter(item => selectedGenres.length === 0 || selectedGenres.includes(item.genre_id)) || [];
   };
 
   const filteredRevenue = filterData(revenue);
@@ -131,7 +134,7 @@ const Dashboard: React.FC = () => {
   );
 
   const getAvailableMonths = () => {
-    const months = [];
+    const months: number[] = [];
     const startMonth = selectedYear === MIN_YEAR ? MIN_MONTH : 1;
     const endMonth = selectedYear === MAX_YEAR ? MAX_MONTH : 12;
     for (let i = startMonth; i <= endMonth; i++) {
@@ -154,13 +157,26 @@ const Dashboard: React.FC = () => {
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
-              <InputLabel>Genre</InputLabel>
+              <InputLabel>Genres</InputLabel>
               <Select
-                value={selectedGenre}
-                onChange={(e) => setSelectedGenre(e.target.value)}
-                label="Genre"
+                multiple
+                value={selectedGenres}
+                onChange={(e: SelectChangeEvent<string[]>) => {
+                  setSelectedGenres(e.target.value as string[]);
+                }}
+                input={<OutlinedInput label="Genres" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip 
+                        key={value} 
+                        label={getGenreName(value)}
+                        sx={{ height: 24 }}
+                      />
+                    ))}
+                  </Box>
+                )}
               >
-                <MenuItem value="">All Genres</MenuItem>
                 {genres?.map((genre) => (
                   <MenuItem key={genre.id} value={genre.id}>
                     {genre.name}
@@ -172,10 +188,10 @@ const Dashboard: React.FC = () => {
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Year</InputLabel>
-              <Select
+              <Select<number>
                 value={selectedYear}
-                onChange={(e) => {
-                  const newYear = Number(e.target.value);
+                onChange={(e: SelectChangeEvent<number>) => {
+                  const newYear = e.target.value as number;
                   setSelectedYear(newYear);
                   if (newYear === MAX_YEAR && selectedMonth > MAX_MONTH) {
                     setSelectedMonth(MAX_MONTH);
@@ -196,9 +212,12 @@ const Dashboard: React.FC = () => {
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Month</InputLabel>
-              <Select
+              <Select<number>
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                onChange={(e: SelectChangeEvent<number>) => {
+                  const newMonth = e.target.value as number;
+                  setSelectedMonth(newMonth);
+                }}
                 label="Month"
               >
                 {getAvailableMonths().map((month) => (
