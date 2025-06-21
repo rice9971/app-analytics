@@ -138,4 +138,4 @@ async def get_country_rank_endpoint(year: int, month: int):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8008)
