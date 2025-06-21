@@ -259,7 +259,7 @@ const Dashboard: React.FC = () => {
                       height={80}
                       fontSize={12}
                     />
-                    <YAxis tickFormatter={formatNumber} />
+                    <YAxis tickFormatter={formatNumber} tick={{ fontSize: 12 }} />
                     <Tooltip 
                       formatter={(value: number) => [formatCurrency(value), 'Revenue']}
                       labelFormatter={getGenreName}
@@ -289,7 +289,7 @@ const Dashboard: React.FC = () => {
                       height={80}
                       fontSize={12}
                     />
-                    <YAxis tickFormatter={formatNumber} />
+                    <YAxis tickFormatter={formatNumber} tick={{ fontSize: 12 }} />
                     <Tooltip 
                       formatter={(value: number) => [value.toFixed(2), 'HHI']}
                       labelFormatter={getGenreName}
@@ -325,7 +325,7 @@ const Dashboard: React.FC = () => {
                       height={80}
                       fontSize={12}
                     />
-                    <YAxis tickFormatter={formatNumber} />
+                    <YAxis tickFormatter={formatNumber} tick={{ fontSize: 12 }} />
                     <Tooltip 
                       formatter={(value: number) => [formatNumber(value), 'Users']}
                       labelFormatter={getGenreName}
@@ -360,6 +360,7 @@ const Dashboard: React.FC = () => {
                       dataKey="genre_id"
                       tickFormatter={getGenreName}
                       width={100}
+                      tick={{ fontSize: 12 }}
                     />
                     <Tooltip
                       formatter={(value: number) => value.toFixed(1)}
@@ -397,7 +398,7 @@ const Dashboard: React.FC = () => {
                       height={80}
                       fontSize={12}
                     />
-                    <YAxis tickFormatter={formatNumber} />
+                    <YAxis tickFormatter={formatNumber} tick={{ fontSize: 12 }} />
                     <Tooltip 
                       formatter={(value: number) => [formatNumber(value), 'Updates']}
                       labelFormatter={getGenreName}
@@ -430,7 +431,7 @@ const Dashboard: React.FC = () => {
                       height={80}
                       fontSize={12}
                     />
-                    <YAxis tickFormatter={formatNumber} />
+                    <YAxis tickFormatter={formatNumber} tick={{ fontSize: 12 }} />
                     <Tooltip 
                       formatter={(value: number) => [formatNumber(value), 'Apps']}
                       labelFormatter={getGenreName}
@@ -469,7 +470,7 @@ const Dashboard: React.FC = () => {
                       height={80}
                       fontSize={12}
                     />
-                    <YAxis tickFormatter={formatNumber} />
+                    <YAxis tickFormatter={formatNumber} tick={{ fontSize: 12 }} />
                     <Tooltip 
                       formatter={(value: number) => [value.toFixed(2), 'Stability']}
                       labelFormatter={getGenreName}
