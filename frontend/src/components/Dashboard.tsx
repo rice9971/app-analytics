@@ -249,24 +249,28 @@ const Dashboard: React.FC = () => {
                   Revenue Distribution
                 </Typography>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={filteredRevenue}>
+                  <BarChart data={filteredRevenue} margin={{ bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="genre_id" 
                       tickFormatter={getGenreName}
                       angle={-45}
                       textAnchor="end"
-                      height={100}
+                      height={80}
+                      fontSize={12}
                     />
                     <YAxis tickFormatter={formatNumber} />
                     <Tooltip 
                       formatter={(value: number) => [formatCurrency(value), 'Revenue']}
                       labelFormatter={getGenreName}
                     />
-                    <Legend />
                     <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
                   </BarChart>
                 </ResponsiveContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5, mt: 1 }}>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#8884d8', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2 }}>Revenue</Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -275,24 +279,28 @@ const Dashboard: React.FC = () => {
                   Market Concentration (HHI)
                 </Typography>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={filteredHHI}>
+                  <BarChart data={filteredHHI} margin={{ bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="genre_id" 
                       tickFormatter={getGenreName}
                       angle={-45}
                       textAnchor="end"
-                      height={100}
+                      height={80}
+                      fontSize={12}
                     />
                     <YAxis tickFormatter={formatNumber} />
                     <Tooltip 
                       formatter={(value: number) => [value.toFixed(2), 'HHI']}
                       labelFormatter={getGenreName}
                     />
-                    <Legend />
                     <Bar dataKey="hhi" fill="#82ca9d" name="HHI" />
                   </BarChart>
                 </ResponsiveContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5, mt: 1 }}>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#82ca9d', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2 }}>HHI</Typography>
+                </Box>
               </Paper>
             </Grid>
           </Grid>
@@ -307,25 +315,31 @@ const Dashboard: React.FC = () => {
                   User Base
                 </Typography>
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={filteredUsers}>
+                  <LineChart data={filteredUsers} margin={{ bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="genre_id" 
                       tickFormatter={getGenreName}
                       angle={-45}
                       textAnchor="end"
-                      height={100}
+                      height={80}
+                      fontSize={12}
                     />
                     <YAxis tickFormatter={formatNumber} />
                     <Tooltip 
                       formatter={(value: number) => [formatNumber(value), 'Users']}
                       labelFormatter={getGenreName}
                     />
-                    <Legend />
                     <Line type="monotone" dataKey="active_users" stroke="#8884d8" name="Active Users" />
                     <Line type="monotone" dataKey="install_base" stroke="#82ca9d" name="Install Base" />
                   </LineChart>
                 </ResponsiveContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <Box sx={{ width: 14, height: 3, bgcolor: '#8884d8', borderRadius: '2px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2, mr: 1 }}>Active Users</Typography>
+                  <Box sx={{ width: 14, height: 3, bgcolor: '#82ca9d', borderRadius: '2px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2 }}>Install Base</Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -351,7 +365,7 @@ const Dashboard: React.FC = () => {
                       formatter={(value: number) => value.toFixed(1)}
                       labelFormatter={getGenreName}
                     />
-                    <Legend />
+                    <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px' }} />
                     <Bar dataKey="rating" fill="#8884d8" name="Rating">
                       {filteredRatings?.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -373,25 +387,31 @@ const Dashboard: React.FC = () => {
                   Version Updates
                 </Typography>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={filteredVersions}>
+                  <BarChart data={filteredVersions} margin={{ bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="genre_id" 
                       tickFormatter={getGenreName}
                       angle={-45}
                       textAnchor="end"
-                      height={100}
+                      height={80}
+                      fontSize={12}
                     />
                     <YAxis tickFormatter={formatNumber} />
                     <Tooltip 
                       formatter={(value: number) => [formatNumber(value), 'Updates']}
                       labelFormatter={getGenreName}
                     />
-                    <Legend />
                     <Bar dataKey="big_version" fill="#8884d8" name="Major Updates" />
                     <Bar dataKey="small_version" fill="#82ca9d" name="Minor Updates" />
                   </BarChart>
                 </ResponsiveContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#8884d8', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2, mr: 1 }}>Major Updates</Typography>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#82ca9d', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2 }}>Minor Updates</Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -400,25 +420,31 @@ const Dashboard: React.FC = () => {
                   App Lifecycle
                 </Typography>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={filteredCounts}>
+                  <BarChart data={filteredCounts} margin={{ bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="genre_id" 
                       tickFormatter={getGenreName}
                       angle={-45}
                       textAnchor="end"
-                      height={100}
+                      height={80}
+                      fontSize={12}
                     />
                     <YAxis tickFormatter={formatNumber} />
                     <Tooltip 
                       formatter={(value: number) => [formatNumber(value), 'Apps']}
                       labelFormatter={getGenreName}
                     />
-                    <Legend />
                     <Bar dataKey="new_entrant" fill="#8884d8" name="New Entrants" />
                     <Bar dataKey="new_exit" fill="#ff8042" name="Exits" />
                   </BarChart>
                 </ResponsiveContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#8884d8', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2, mr: 1 }}>New Entrants</Typography>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#ff8042', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2 }}>Exits</Typography>
+                </Box>
               </Paper>
             </Grid>
           </Grid>
@@ -433,27 +459,37 @@ const Dashboard: React.FC = () => {
                   Market Stability
                 </Typography>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={filteredStability}>
+                  <BarChart data={filteredStability} margin={{ bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="genre_id" 
                       tickFormatter={getGenreName}
                       angle={-45}
                       textAnchor="end"
-                      height={100}
+                      height={80}
+                      fontSize={12}
                     />
                     <YAxis tickFormatter={formatNumber} />
                     <Tooltip 
                       formatter={(value: number) => [value.toFixed(2), 'Stability']}
                       labelFormatter={getGenreName}
                     />
-                    <Legend />
                     <Bar dataKey="stability" fill="#8884d8" name="Overall Stability" />
                     <Bar dataKey="stability_5" fill="#82ca9d" name="Top 5 Stability" />
                     <Bar dataKey="stability_10" fill="#ffc658" name="Top 10 Stability" />
                     <Bar dataKey="stability_20" fill="#ff8042" name="Top 20 Stability" />
                   </BarChart>
                 </ResponsiveContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#8884d8', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2, mr: 1 }}>Overall Stability</Typography>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#82ca9d', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2, mr: 1 }}>Top 5 Stability</Typography>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#ffc658', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2, mr: 1 }}>Top 10 Stability</Typography>
+                  <Box sx={{ width: 14, height: 14, bgcolor: '#ff8042', borderRadius: '3px', mr: 0.5 }} />
+                  <Typography variant="body2" sx={{ lineHeight: 1.2 }}>Top 20 Stability</Typography>
+                </Box>
               </Paper>
             </Grid>
           </Grid>
